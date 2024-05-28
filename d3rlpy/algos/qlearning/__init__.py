@@ -16,3 +16,4 @@ from .random_policy import *
 from .sac import *
 from .td3 import *
 from .td3_plus_bc import *
+from .xql import *

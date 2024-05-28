@@ -12,3 +12,4 @@ from .plas_impl import *
 from .sac_impl import *
 from .td3_impl import *
 from .td3_plus_bc_impl import *
+from .xql_impl import *
