@@ -69,28 +69,28 @@ class XQLImpl(IQLImpl):
             )
         if self._use_log_loss:
             value_loss = self.gumbel_log_loss(
-                v_t, q_t, self._beta, self._max_clip
+                q_t - v_t, self._beta, self._max_clip
             )
         else:
-            value_loss = self.gumbel_loss(v_t, q_t, self._beta, self._max_clip)
+            value_loss = self.gumbel_loss(q_t - v_t, self._beta, self._max_clip)
 
         return IQLCriticLoss(
             critic_loss=q_loss + value_loss, q_loss=q_loss, v_loss=value_loss
         )
 
     @staticmethod
-    def gumbel_loss(pred, label, beta, clip):
-        z = (label - pred) / beta
+    def gumbel_loss(diff: torch.Tensor, beta, clip) -> torch.Tensor:
+        z = diff / beta
         z = torch.clamp(z, None, clip)
         max_z = torch.max(z, dim=0)[0]
         max_z = torch.where(max_z < -1.0, torch.tensor(-1.0), max_z)
-        max_z = max_z.detach()  # Detach the gradients
+        max_z = max_z.detach()
         loss = torch.exp(z - max_z) - z * torch.exp(-max_z) - torch.exp(-max_z)
         return loss.mean()
 
     @staticmethod
-    def gumbel_log_loss(pred, label, beta, clip):
-        z = (label - pred) / beta
+    def gumbel_log_loss(diff: torch.Tensor, beta, clip) -> torch.Tensor:
+        z = diff / beta
         z = torch.clamp(z, None, clip)
         max_z = torch.max(z, dim=0)[0]
         max_z = torch.where(max_z < -1.0, torch.tensor(-1.0), max_z)
